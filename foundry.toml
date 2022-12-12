@@ -2,5 +2,14 @@
 src = 'src'
 out = 'out'
 libs = ['lib']
+gas_reports = ["StreamManager", "StreamManagerFactory"]
+optimizer = true
+
+
+[rpc_endpoints]
+polygon = "${POLYGON_RPC_URL}"
+
+[etherscan]
+polygon = { key = "${POLYGONSCAN_API_KEY}" }
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

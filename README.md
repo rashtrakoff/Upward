@@ -6,7 +6,7 @@ Enable subscription based token-gating for your content powered by Superfluid.
 
 | Chain           | Names                                                                                                                                          |
 |-----------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| Polygon Mainnet | StreamManagerFactory: 0x222fa45e148Bb5E23f5E10b6bc27a47Ca55f4EcB<br>StreamManager (implementation): 0xAed83Fd76188a16Aa55c60b38c19887f91411ccB |
+| Polygon Mainnet | StreamManagerFactory: 0x222fa45e148Bb5E23f5E10b6bc27a47Ca55f4EcB<br>StreamManager (implementation): 0x2b576c5f94cde58172ebcaa52e0f365084ff27fb |
 
 ## How To Use The Contracts
 

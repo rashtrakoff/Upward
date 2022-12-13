@@ -13,6 +13,7 @@ import "forge-std/console.sol";
 contract StreamManager is SuperAppBase, Initializable {
     using CFAv1Library for CFAv1Library.InitData;
 
+
     error ZeroAddress();
     error UpdatesNotPermitted();
     error NotHost(address expectedHost, address actualCaller);
@@ -21,6 +22,7 @@ contract StreamManager is SuperAppBase, Initializable {
     error InvalidPaymentFlowrate(int96 paymentFlowrate);
     error NotCreator(address caller, address creator);
     error FlowrateChangeFailed(int96 newFlowrate, int96 oldFlowrate);
+
 
     event PaymentTokenChanged(
         address newPaymentSuperToken,
@@ -34,6 +36,7 @@ contract StreamManager is SuperAppBase, Initializable {
     event SubscriptionTerminated(address subscriber);
     event TerminationFailedWithReason(string reason);
     event TerminationFailedWithData(bytes data);
+
 
     CFAv1Forwarder public FORWARDER;
 
@@ -243,7 +246,9 @@ contract StreamManager is SuperAppBase, Initializable {
         bytes calldata /*_cbdata*/,
         bytes calldata _ctx
     ) external override returns (bytes memory _newCtx) {
-        try this.terminationHook(_ctx) returns (bytes memory _modCtx) {
+        _newCtx = _ctx;
+
+        try this.terminationHook(_newCtx) returns (bytes memory _modCtx) {
             _newCtx = _modCtx;
             (address subscriber, ) = abi.decode(_agreementData, (address, address));
 

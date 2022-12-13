@@ -16,6 +16,7 @@ contract StreamManagerFactory is Ownable {
     error InvalidName();
     error InvalidPaymentFlowrate(int96 paymentFlowrate);
 
+
     event NewManagerCreated(
         address indexed creator,
         address streamManager,

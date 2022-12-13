@@ -103,7 +103,7 @@ contract StreamManagerTest is Test, Setup {
         assertEq(
             forwarder.getAccountFlowrate(superToken, streamManager),
             0,
-            "Creator's incoming rate is incorrect"
+            "Manager's incoming rate is incorrect"
         );
     }
 
@@ -154,12 +154,13 @@ contract StreamManagerTest is Test, Setup {
         assertEq(
             forwarder.getAccountFlowrate(superToken, streamManager),
             0,
-            "Creator's incoming rate is incorrect"
+            "Manager's incoming rate is incorrect"
         );
     }
 
     function testAfterAgreementUpdated() public {
         address streamManager = _createStreamManager();
+        CFAv1Forwarder forwarder = sf.cfaV1Forwarder;
         CFAv1Library.InitData storage cfaLib = sf.cfaLib;
         int96 incomingFlowrate = _convertToRate(1e10);
 
@@ -175,6 +176,27 @@ contract StreamManagerTest is Test, Setup {
             streamManager,
             ISuperToken(address(superToken)),
             incomingFlowrate / 2
+        );
+
+        vm.stopPrank();
+
+        // Checking if new flow camn be created by anyone implying superapp isn't jailed.
+        vm.prank(bob);
+        cfaLib.createFlow(
+            streamManager,
+            ISuperToken(address(superToken)),
+            incomingFlowrate
+        );
+
+        assertEq(
+            forwarder.getFlowrate(superToken, bob, streamManager),
+            incomingFlowrate,
+            "Bob's payment rate is incorrect"
+        );
+        assertEq(
+            forwarder.getFlowrate(superToken, streamManager, admin),
+            2 * incomingFlowrate,
+            "Creator's incoming rate is incorrect"
         );
     }
 }

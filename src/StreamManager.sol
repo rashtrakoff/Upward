@@ -30,6 +30,10 @@ contract StreamManager is SuperAppBase, Initializable {
         int96 newPaymentFlowrate,
         int96 oldPaymentFlowrate
     );
+    event SubscriptionCreated(address subscriber);
+    event SubscriptionTerminated(address subscriber);
+    event TerminationFailedWithReason(string reason);
+    event TerminationFailedWithData(bytes data);
 
     CFAv1Forwarder public FORWARDER;
 
@@ -104,6 +108,40 @@ contract StreamManager is SuperAppBase, Initializable {
         emit PaymentFlowrateChanged(_newPaymentFlowrate, oldPaymentFlowrate);
     }
 
+    function terminationHook(bytes memory _ctx) external returns (bytes memory _newCtx) {
+        _newCtx = _ctx;
+
+        // NOTE: We are assuming that only this contract can call this method.
+        // Actually, it's the Host contract that leads to this contract triggering this method. 
+        if (msg.sender == address(this)) {
+            ISuperToken cachedPaymentToken = paymentToken;
+            CFAv1Forwarder forwarder = FORWARDER;
+            address creator = CREATOR;
+            int96 oldCreatorIncomingFlowrate = forwarder.getFlowrate(cachedPaymentToken, address(this), creator);
+            int96 oldOutgoingFlowrate = forwarder.getAccountFlowrate(cachedPaymentToken, address(this));
+
+            // As `oldOutgoingFlowrate` should be -ve, we can directly add it.
+            int96 newCreatorIncomingFlowrate = oldCreatorIncomingFlowrate + oldOutgoingFlowrate;
+
+            // Decrease the flowrate to the creator.
+            if (newCreatorIncomingFlowrate == int96(0)) {
+                _newCtx = CFA_V1.deleteFlowWithCtx(
+                    _newCtx,
+                    address(this),
+                    creator,
+                    cachedPaymentToken
+                );
+            } else {
+                _newCtx = CFA_V1.updateFlowWithCtx(
+                    _newCtx,
+                    creator,
+                    cachedPaymentToken,
+                    newCreatorIncomingFlowrate
+                );
+            }
+        }
+    }
+
     function _checkCreator(address _caller) internal view {
         address creator = CREATOR;
 
@@ -174,6 +212,8 @@ contract StreamManager is SuperAppBase, Initializable {
                 incomingFlowrate
             );
         }
+
+        emit SubscriptionCreated(subscriber);
     }
 
     // TODO: Permit updates if new `paymentFlowrate` < user's current flowrate.
@@ -199,38 +239,19 @@ contract StreamManager is SuperAppBase, Initializable {
         ISuperToken, /*_superToken*/
         address, /*_agreementClass*/
         bytes32, /*_agreementId*/
-        bytes calldata /* _agreementData*/,
+        bytes calldata _agreementData,
         bytes calldata /*_cbdata*/,
         bytes calldata _ctx
     ) external override returns (bytes memory _newCtx) {
-        _newCtx = _ctx;
+        try this.terminationHook(_ctx) returns (bytes memory _modCtx) {
+            _newCtx = _modCtx;
+            (address subscriber, ) = abi.decode(_agreementData, (address, address));
 
-        if (msg.sender == HOST) {
-            ISuperToken cachedPaymentToken = paymentToken;
-            CFAv1Forwarder forwarder = FORWARDER;
-            address creator = CREATOR;
-            int96 oldCreatorIncomingFlowrate = forwarder.getFlowrate(cachedPaymentToken, address(this), creator);
-            int96 oldOutgoingFlowrate = forwarder.getAccountFlowrate(cachedPaymentToken, address(this));
-
-            // As `oldOutgoingFlowrate` should be -ve, we can directly add it.
-            int96 newCreatorIncomingFlowrate = oldCreatorIncomingFlowrate + oldOutgoingFlowrate;
-
-            // Decrease the flowrate to the creator.
-            if (newCreatorIncomingFlowrate == int96(0)) {
-                _newCtx = CFA_V1.deleteFlowWithCtx(
-                    _newCtx,
-                    address(this),
-                    creator,
-                    cachedPaymentToken
-                );
-            } else {
-                _newCtx = CFA_V1.updateFlowWithCtx(
-                    _newCtx,
-                    creator,
-                    cachedPaymentToken,
-                    newCreatorIncomingFlowrate
-                );
-            }
+            emit SubscriptionTerminated(subscriber);
+        } catch Error (string memory _reason) {
+            emit TerminationFailedWithReason(_reason);
+        } catch (bytes memory _data) {
+            emit TerminationFailedWithData(_data);
         }
     }
 }

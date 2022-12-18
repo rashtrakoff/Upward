@@ -13,7 +13,6 @@ import "forge-std/console.sol";
 contract StreamManager is SuperAppBase, Initializable {
     using CFAv1Library for CFAv1Library.InitData;
 
-
     error ZeroAddress();
     error UpdatesNotPermitted();
     error NotHost(address expectedHost, address actualCaller);
@@ -22,7 +21,6 @@ contract StreamManager is SuperAppBase, Initializable {
     error InvalidPaymentFlowrate(int96 paymentFlowrate);
     error NotCreator(address caller, address creator);
     error FlowrateChangeFailed(int96 newFlowrate, int96 oldFlowrate);
-
 
     event PaymentTokenChanged(
         address newPaymentSuperToken,
@@ -37,24 +35,27 @@ contract StreamManager is SuperAppBase, Initializable {
     event TerminationFailedWithReason(string reason);
     event TerminationFailedWithData(bytes data);
 
-
     CFAv1Forwarder public FORWARDER;
 
     CFAv1Library.InitData public CFA_V1;
 
     address public HOST;
 
-    string public NAME;
-
     address public CREATOR;
 
     ISuperToken public paymentToken;
 
-    int96 paymentFlowrate;
+    // The following two variable are required for token gating purposes.
+    // Ex: paragraph.xyz uses these variables to validate a contract for token gating
+    // purposes.
+    string public name;
+    string public symbol;
 
+    int96 paymentFlowrate;
 
     function initialize(
         string calldata _name,
+        string calldata _symbol,
         address _creator,
         address _paymentToken,
         address _forwarder,
@@ -64,12 +65,13 @@ contract StreamManager is SuperAppBase, Initializable {
     ) external initializer {
         FORWARDER = CFAv1Forwarder(_forwarder);
         HOST = _host;
-        NAME = _name;
         CREATOR = _creator;
         CFA_V1 = CFAv1Library.InitData({
             host: ISuperfluid(_host),
             cfa: IConstantFlowAgreementV1(_cfa)
         });
+        name = _name;
+        symbol = _symbol;
         paymentToken = ISuperToken(_paymentToken);
         paymentFlowrate = _paymentFlowrate;
     }
@@ -111,20 +113,31 @@ contract StreamManager is SuperAppBase, Initializable {
         emit PaymentFlowrateChanged(_newPaymentFlowrate, oldPaymentFlowrate);
     }
 
-    function terminationHook(bytes memory _ctx) external returns (bytes memory _newCtx) {
+    function terminationHook(bytes memory _ctx)
+        external
+        returns (bytes memory _newCtx)
+    {
         _newCtx = _ctx;
 
         // NOTE: We are assuming that only this contract can call this method.
-        // Actually, it's the Host contract that leads to this contract triggering this method. 
+        // Actually, it's the Host contract that leads to this contract triggering this method.
         if (msg.sender == address(this)) {
             ISuperToken cachedPaymentToken = paymentToken;
             CFAv1Forwarder forwarder = FORWARDER;
             address creator = CREATOR;
-            int96 oldCreatorIncomingFlowrate = forwarder.getFlowrate(cachedPaymentToken, address(this), creator);
-            int96 oldOutgoingFlowrate = forwarder.getAccountFlowrate(cachedPaymentToken, address(this));
+            int96 oldCreatorIncomingFlowrate = forwarder.getFlowrate(
+                cachedPaymentToken,
+                address(this),
+                creator
+            );
+            int96 oldOutgoingFlowrate = forwarder.getAccountFlowrate(
+                cachedPaymentToken,
+                address(this)
+            );
 
             // As `oldOutgoingFlowrate` should be -ve, we can directly add it.
-            int96 newCreatorIncomingFlowrate = oldCreatorIncomingFlowrate + oldOutgoingFlowrate;
+            int96 newCreatorIncomingFlowrate = oldCreatorIncomingFlowrate +
+                oldOutgoingFlowrate;
 
             // Decrease the flowrate to the creator.
             if (newCreatorIncomingFlowrate == int96(0)) {
@@ -243,17 +256,20 @@ contract StreamManager is SuperAppBase, Initializable {
         address, /*_agreementClass*/
         bytes32, /*_agreementId*/
         bytes calldata _agreementData,
-        bytes calldata /*_cbdata*/,
+        bytes calldata, /*_cbdata*/
         bytes calldata _ctx
     ) external override returns (bytes memory _newCtx) {
         _newCtx = _ctx;
 
         try this.terminationHook(_newCtx) returns (bytes memory _modCtx) {
             _newCtx = _modCtx;
-            (address subscriber, ) = abi.decode(_agreementData, (address, address));
+            (address subscriber, ) = abi.decode(
+                _agreementData,
+                (address, address)
+            );
 
             emit SubscriptionTerminated(subscriber);
-        } catch Error (string memory _reason) {
+        } catch Error(string memory _reason) {
             emit TerminationFailedWithReason(_reason);
         } catch (bytes memory _data) {
             emit TerminationFailedWithData(_data);

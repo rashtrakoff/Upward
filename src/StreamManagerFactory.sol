@@ -63,6 +63,7 @@ contract StreamManagerFactory is Ownable {
 
     function initStreamManager(
         string calldata _name,
+        string calldata _symbol,
         address _paymentToken,
         int96 _paymentFlowrate
     ) external returns (address _newStreamManager) {
@@ -75,6 +76,7 @@ contract StreamManagerFactory is Ownable {
 
         StreamManager(_newStreamManager).initialize(
             _name,
+            _symbol,
             msg.sender,
             _paymentToken,
             FORWARDER,

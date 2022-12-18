@@ -44,6 +44,7 @@ abstract contract Setup is FoundrySuperfluidTester {
         // Initialising a creator set.
         _newStreamManager = Factory.initStreamManager(
             "TESTING",
+            "TEST",
             address(superToken),
             _convertToRate(1e10)
         );

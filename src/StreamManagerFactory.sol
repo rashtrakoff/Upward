@@ -21,6 +21,7 @@ contract StreamManagerFactory is Ownable {
         address indexed creator,
         address streamManager,
         string name,
+        string symbol,
         address paymentSuperToken,
         int96 paymentFlowrate
     );
@@ -94,6 +95,7 @@ contract StreamManagerFactory is Ownable {
             msg.sender,
             _newStreamManager,
             _name,
+            _symbol,
             _paymentToken,
             _paymentFlowrate
         );

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.15;
 
-import "../../src/SimpleStreamManagerFactory.sol";
+import "../../src/SimpleStreamManager/SimpleStreamManagerFactory.sol";
 import "./FoundrySuperfluidTester.sol";
 
 abstract contract Setup is FoundrySuperfluidTester {

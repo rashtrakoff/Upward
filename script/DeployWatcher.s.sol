@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.15;
 
-import "../src/WatcherFactory.sol";
-import "../src/Watcher.sol";
+import "../src/Watcher/WatcherFactory.sol";
+import "../src/Watcher/Watcher.sol";
 import "forge-std/Script.sol";
 
 contract DeployWatcherScript is Script {

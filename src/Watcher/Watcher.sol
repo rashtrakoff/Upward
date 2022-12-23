@@ -34,8 +34,6 @@ contract Watcher is Initializable {
     );
 
 
-    CFAv1Forwarder public FORWARDER;
-
     address public CREATOR;
 
     ISuperToken public paymentToken;
@@ -46,8 +44,9 @@ contract Watcher is Initializable {
     string public name;
     string public symbol;
 
-    int96 paymentFlowrate;
+    int96 public paymentFlowrate;
 
+    CFAv1Forwarder FORWARDER;
 
     function initialize(
         string calldata _name,
@@ -91,6 +90,8 @@ contract Watcher is Initializable {
 
     // NOTE: If the content creator gives 0 as `_newPaymentFlowrate` it means anyone can
     // view the gated publications.
+    // NOTE: This function can automatically deem the existing streams with the min required flowrate
+    // ineligible for gated content access. So some kind of notification should take place beforehand.
     function setPaymentFlowrate(int96 _newPaymentFlowrate) external {
         _checkCreator(msg.sender);
         if (_newPaymentFlowrate < 0)

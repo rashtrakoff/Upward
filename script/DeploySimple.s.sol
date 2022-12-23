@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.15;
 
-import "../src/SimpleStreamManagerFactory.sol";
-import "../src/SimpleStreamManager.sol";
+import "../src/SimpleStreamManager/SimpleStreamManagerFactory.sol";
+import "../src/SimpleStreamManager/SimpleStreamManager.sol";
 import "forge-std/Script.sol";
 
 contract DeploySimpleScript is Script {

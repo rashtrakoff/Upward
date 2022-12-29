@@ -70,20 +70,50 @@ contract FoundrySuperfluidTester is Test {
         }
     }
 
-    function fillWallet(address _receiver) public virtual {
-        // token.mint(_receiver, INIT_TOKEN_BALANCE);
+    function createNewTokenPair(string memory _name, string memory _symbol)
+        public
+        virtual
+        returns (TestToken _token, SuperToken _superToken)
+    {
+        (_token, _superToken) = sfDeployer.deployWrapperSuperToken(
+            _name,
+            _symbol,
+            18,
+            type(uint256).max
+        );
+    }
 
-        // vm.startPrank(_receiver);
-        // token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-        // superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-        // _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-        // vm.stopPrank();
+    function fillWallet(address _receiver) public virtual {
         mintToken(_receiver);
         mintSuperToken(_receiver);
     }
 
+    function fillWallet(SuperToken _superToken, address _receiver)
+        public
+        virtual
+    {
+        mintToken(
+            TestToken(_superToken.getUnderlyingToken()),
+            _receiver,
+            uint128(INIT_TOKEN_BALANCE)
+        );
+        mintSuperToken(
+            _superToken,
+            _receiver,
+            uint64(INIT_SUPER_TOKEN_BALANCE)
+        );
+    }
+
     function mintToken(address _receiver) public virtual {
         token.mint(_receiver, INIT_TOKEN_BALANCE);
+    }
+
+    function mintToken(
+        TestToken _token,
+        address _receiver,
+        uint128 _amount
+    ) public virtual {
+        _token.mint(_receiver, _amount);
     }
 
     function mintToken(address _receiver, uint128 _amount) public virtual {
@@ -103,6 +133,17 @@ contract FoundrySuperfluidTester is Test {
         token.approve(address(superToken), _amount);
         superToken.upgrade(_amount);
         _expectedTotalSupply += _amount;
+        vm.stopPrank();
+    }
+
+    function mintSuperToken(
+        SuperToken _superToken,
+        address _receiver,
+        uint64 _amount
+    ) public virtual {
+        vm.startPrank(_receiver);
+        TestToken(_superToken.getUnderlyingToken()).approve(address(_superToken), _amount);
+        _superToken.upgrade(_amount);
         vm.stopPrank();
     }
 

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.15;
 
-import "../../src/StreamManager/StreamManagerFactory.sol";
+import "../../src/SimpleStreamManager/SimpleStreamManagerFactory.sol";
 import "./FoundrySuperfluidTester.sol";
 
 abstract contract Setup is FoundrySuperfluidTester {
     using CFAv1Library for CFAv1Library.InitData;
 
-    StreamManagerFactory Factory;
+    SimpleStreamManagerFactory Factory;
     address streamManagerImplementation;
 
     address constant deployer = 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84;
@@ -16,12 +16,10 @@ abstract contract Setup is FoundrySuperfluidTester {
 
     function setUp() public override {
         // Deploy new stream manager implementation contract.
-        streamManagerImplementation = address(new StreamManager());
+        streamManagerImplementation = address(new SimpleStreamManager());
 
         // Deploy factory contract.
-        Factory = new StreamManagerFactory({
-            _host: address(sf.host),
-            _cfa: address(sf.cfa),
+        Factory = new SimpleStreamManagerFactory({
             _cfaV1Forwarder: address(sf.cfaV1Forwarder),
             _streamManagerImplementation: streamManagerImplementation
         });

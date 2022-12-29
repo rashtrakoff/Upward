@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.15;
 
-import "../../src/StreamManager/StreamManagerFactory.sol";
+import "../../src/Watcher/WatcherFactory.sol";
 import "./FoundrySuperfluidTester.sol";
 
 abstract contract Setup is FoundrySuperfluidTester {
     using CFAv1Library for CFAv1Library.InitData;
 
-    StreamManagerFactory Factory;
-    address streamManagerImplementation;
+    WatcherFactory Factory;
+    address watcherImplementation;
 
     address constant deployer = 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84;
 
@@ -16,14 +16,12 @@ abstract contract Setup is FoundrySuperfluidTester {
 
     function setUp() public override {
         // Deploy new stream manager implementation contract.
-        streamManagerImplementation = address(new StreamManager());
+        watcherImplementation = address(new Watcher());
 
         // Deploy factory contract.
-        Factory = new StreamManagerFactory({
-            _host: address(sf.host),
-            _cfa: address(sf.cfa),
+        Factory = new WatcherFactory({
             _cfaV1Forwarder: address(sf.cfaV1Forwarder),
-            _streamManagerImplementation: streamManagerImplementation
+            _watcherImplementation: watcherImplementation
         });
 
         // Creates a mock token and a supertoken and fills the mock wallets.
@@ -33,16 +31,16 @@ abstract contract Setup is FoundrySuperfluidTester {
         fillWallet(deployer);
     }
 
-    function _createStreamManager()
+    function _createWatcher()
         internal
         returns (
-            address _newStreamManager
+            address _newWatcher
         )
     {
         vm.startPrank(admin);
 
         // Initialising a creator set.
-        _newStreamManager = Factory.initStreamManager(
+        _newWatcher = Factory.initWatcher(
             "TESTING",
             "TEST",
             address(superToken),

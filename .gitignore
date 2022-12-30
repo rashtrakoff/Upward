@@ -1,7 +1,6 @@
 .vscode
 .env
 cache
-lib
 out
 broadcast
 StreamManagerFactory-Constructor.txt

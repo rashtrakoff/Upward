@@ -6,7 +6,23 @@ Enable subscription based token-gating for your content powered by Superfluid.
 
 | Chain           | Names                                                                                                                                          |
 |-----------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| Polygon Mainnet | WatcherFactory: 0x06DfA8378c49835d9e2f3Ad27Cc8936E1A3f5c20<br>Watcher (implementation): 0x7cB1b6dC620c2bC4d63b32a83427D2C30f0a3373 |
+| Polygon Mainnet | WatcherFactory: 0x5bbf63bA91D8a0E0C90f1535506F385b2DaBAAC6<br>Watcher (implementation): 0xFC7be25d818380cf551eD3dac0a45E2471BB0e3d |
+
+To deploy the contracts and verify them, use the following line of command:
+
+```
+forge script script/DeployWatcher.s.sol:DeployWatcherScript --rpc-url $POLYGON_RPC_URL --broadcast -vvvv --verify --etherscan-api-key $POLYGONSCAN_API_KEY --slow --with-gas-price 50000000000
+```
+
+Somehow, using the following line of code *doesn't* work:
+
+```
+forge script script/DeployWatcher.s.sol:DeployWatcherScript --rpc-url $POLYGON_RPC_URL --broadcast -vvvv --verify --etherscan-api-key $POLYGONSCAN_API_KEY
+```
+
+It throws the following error:
+
+`(code: -32000, message: insufficient funds for gas * price + value, data: None)`
 
 ## How To Use The Contracts
 
